@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cupones de Cumpleaños - Adipa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --brand: #704EFD;
+      --brand-dark: #5a3ecf;
+      --brand-light: #f0ecff;
+      --success: #00b894;
+      --warning: #fdcb6e;
+      --danger: #e17055;
+      --text: #1a1a2e;
+      --text-muted: #6c6c80;
+      --border: #e8e6f0;
+      --bg: #f8f7fc;
+      --white: #ffffff;
+      --card-shadow: 0 4px 24px rgba(112,78,253,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      padding: 32px 16px 60px;
+      color: var(--text);
+    }
+
+    .page-wrap {
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .logo-wrap {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-wrap img { width: 150px; }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brand);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="email"]:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(112,78,253,0.12);
+      background: var(--white);
+    }
+
+    .btn-buscar {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-buscar:hover:not(:disabled) {
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+    }
+    .btn-buscar:disabled {
+      background: #c4b8ff;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Mensaje */
+    .mensaje {
+      margin-top: 14px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 500;
+      min-height: 20px;
+      transition: opacity 0.3s;
+    }
+
+    /* Resultado */
+    .resultado {
+      margin-top: 28px;
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .resultado-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--brand);
+      flex-shrink: 0;
+    }
+
+    .nombre-usuario {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .email-usuario {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Grid de datos */
+    .grid-datos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .dato-item {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    .dato-item.full { grid-column: 1 / -1; }
+
+    .dato-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .dato-valor {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.si   { background: #e6f9f4; color: #00805f; }
+    .badge.no   { background: #fff1ee; color: #c0392b; }
+    .badge.nd   { background: #f0ecff; color: var(--brand); }
+
+    /* Cupón destacado */
+    .cupon-box {
+      background: linear-gradient(135deg, #f0ecff 0%, #e8e2ff 100%);
+      border: 1.5px dashed var(--brand);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .cupon-info { flex: 1; }
+    .cupon-tipo {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .cupon-codigo {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.03em;
+    }
+    .btn-copy {
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { background: var(--brand-dark); }
+    .btn-copy.copiado { background: #00b894; }
+
+    .seccion-titulo {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .seccion-titulo::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn-nueva {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: transparent;
+      color: var(--brand);
+      border: 1.5px solid var(--brand);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-nueva:hover {
+      background: var(--brand-light);
+    }
+
+    .no-encontrado {
+      text-align: center;
+      padding: 28px 0 8px;
+      display: none;
+    }
+    .no-encontrado .icon { font-size: 36px; margin-bottom: 8px; }
+    .no-encontrado p { font-size: 14px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <div class="logo-wrap">
+    <img src="https://aula.adipa.cl/pluginfile.php/1/theme_mb2nl/logo/1732710878/LOGOADIPA%202%20%283%29%20%281%29.png" alt="Logo Adipa">
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎂 Cupón de Cumpleaños</div>
+    <div class="card-subtitle">Ingresa el correo del contacto para consultar su beneficio</div>
+
+    <label for="email">Correo electrónico</label>
+    <input type="email" id="email" placeholder="correo@ejemplo.com" autocomplete="off">
+
+    <button class="btn-buscar" id="btnBuscar" onclick="buscarContacto()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnTexto">🔍 Buscar contacto</span>
+    </button>
+
+    <div class="mensaje" id="mensaje"></div>
+
+    <!-- No encontrado -->
+    <div class="no-encontrado" id="noEncontrado">
+      <div class="icon">🔎</div>
+      <p>No se encontró ningún contacto con ese correo.</p>
+    </div>
+
+    <!-- Resultado -->
+    <div class="resultado" id="resultado">
+
+      <div class="resultado-header">
+        <div class="avatar" id="avatarLetras">--</div>
+        <div>
+          <div class="nombre-usuario" id="nombreUsuario">—</div>
+          <div class="email-usuario" id="emailUsuario">—</div>
+        </div>
+      </div>
+
+      <!-- Info general -->
+      <div class="seccion-titulo">Información general</div>
+      <div class="grid-datos">
+        <div class="dato-item">
+          <div class="dato-label">Fecha de nacimiento</div>
+          <div class="dato-valor" id="fechaNacimiento">—</div>
+        </div>
+        <div class="dato-item">
+          <div class="dato-label">Estado verificación</div>
+          <div class="dato-valor" id="estadoVerificacion">—</div>
+        </div>
+        <div class="dato-item">
+          <div class="dato-label">Fecha verificación</div>
+          <div class="dato-valor" id="fechaVerificacion">—</div>
+        </div>
+        <div class="dato-item">
+          <div class="dato-label">Beneficiario Adipartners</div>
+          <div class="dato-valor" id="esAdipartners">—</div>
+        </div>
+      </div>
+
+      <!-- Cupón principal -->
+      <div class="seccion-titulo">Cupón de cumpleaños</div>
+      <div class="cupon-box" id="cuponBox">
+        <div class="cupon-info">
+          <div class="cupon-tipo">Código del cupón</div>
+          <div class="cupon-codigo" id="codigoCupon">—</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="fechaEntregaCupon">Entregado: —</div>
+        </div>
+        <button class="btn-copy" id="btnCopiarCupon" onclick="copiarCupon()">Copiar</button>
+      </div>
+
+      <!-- Cupones adicionales -->
+      <div id="seccionCuponesExtra" style="display:none;">
+        <div class="seccion-titulo">Otros cupones</div>
+        <div id="listaCuponesExtra"></div>
+      </div>
+
+      <button class="btn-nueva" onclick="location.reload()">← Nueva consulta</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 👇 REEMPLAZA ESTA URL con la de tu webhook en Make
+  const WEBHOOK_URL = "PEGA_AQUI_TU_URL_DE_MAKE";
+
+  async function buscarContacto() {
+    const email = document.getElementById("email").value.trim();
+    const mensaje = document.getElementById("mensaje");
+    const btn = document.getElementById("btnBuscar");
+    const spinner = document.getElementById("spinner");
+    const btnTexto = document.getElementById("btnTexto");
+
+    if (!email) {
+      mensaje.textContent = "Ingresa un correo electrónico.";
+      mensaje.style.color = "var(--danger)";
+      return;
+    }
+
+    // Estado cargando
+    btn.disabled = true;
+    spinner.style.display = "block";
+    btnTexto.textContent = "Buscando...";
+    mensaje.textContent = "";
+    document.getElementById("resultado").style.display = "none";
+    document.getElementById("noEncontrado").style.display = "none";
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (!data || data.error || !data.nombre) {
+        document.getElementById("noEncontrado").style.display = "block";
+        return;
+      }
+
+      mostrarResultado(data, email);
+
+    } catch (e) {
+      mensaje.textContent = "Error al conectar con el servidor.";
+      mensaje.style.color = "var(--danger)";
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTexto.textContent = "🔍 Buscar contacto";
+    }
+  }
+
+  function badge(valor) {
+    if (!valor || valor === "—" || valor === "null") return `<span class="badge nd">Sin datos</span>`;
+    const v = valor.toString().toLowerCase();
+    if (v === "si" || v === "sí" || v === "true" || v === "yes")
+      return `<span class="badge si">✓ Sí</span>`;
+    if (v === "no" || v === "false")
+      return `<span class="badge no">✗ No</span>`;
+    return `<span class="badge nd">${valor}</span>`;
+  }
+
+  function formatFecha(f) {
+    if (!f || f === "null" || f === "") return "—";
+    try {
+      return new Date(f).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
+    } catch { return f; }
+  }
+
+  function mostrarResultado(data, email) {
+    const nombre = data.nombre || "Sin nombre";
+    const iniciales = nombre.split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
+
+    document.getElementById("avatarLetras").textContent = iniciales;
+    document.getElementById("nombreUsuario").textContent = nombre;
+    document.getElementById("emailUsuario").textContent = email;
+    document.getElementById("fechaNacimiento").textContent = formatFecha(data.fecha_nacimiento);
+    document.getElementById("estadoVerificacion").innerHTML = badge(data.estado_verificacion);
+    document.getElementById("fechaVerificacion").textContent = formatFecha(data.fecha_verificacion);
+    document.getElementById("esAdipartners").innerHTML = badge(data.es_adipartners);
+
+    // Cupón principal
+    const cupon = data.cupon_cumpleanos || "Sin cupón";
+    document.getElementById("codigoCupon").textContent = cupon;
+    document.getElementById("fechaEntregaCupon").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
+
+    // Cupones extra
+    if (data.cupones_adicionales && data.cupones_adicionales.length > 0) {
+      const lista = document.getElementById("listaCuponesExtra");
+      lista.innerHTML = "";
+      data.cupones_adicionales.forEach(c => {
+        const box = document.createElement("div");
+        box.className = "cupon-box";
+        box.style.marginBottom = "10px";
+        box.innerHTML = `
+          <div class="cupon-info">
+            <div class="cupon-tipo">${c.tipo || "Cupón"}</div>
+            <div class="cupon-codigo">${c.codigo || "—"}</div>
+          </div>
+          <button class="btn-copy" onclick="copiarTexto('${c.codigo}', this)">Copiar</button>
+        `;
+        lista.appendChild(box);
+      });
+      document.getElementById("seccionCuponesExtra").style.display = "block";
+    }
+
+    document.getElementById("resultado").style.display = "block";
+  }
+
+  function copiarCupon() {
+    const codigo = document.getElementById("codigoCupon").textContent;
+    const btn = document.getElementById("btnCopiarCupon");
+    copiarTexto(codigo, btn);
+  }
+
+  function copiarTexto(texto, btn) {
+    navigator.clipboard.writeText(texto).then(() => {
+      const original = btn.textContent;
+      btn.textContent = "¡Copiado!";
+      btn.classList.add("copiado");
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove("copiado");
+      }, 1500);
+    });
+  }
+
+  // Enter para buscar
+  document.getElementById("email").addEventListener("keydown", e => {
+    if (e.key === "Enter") buscarContacto();
+  });
+</script>
+
+</body>
+</html>
