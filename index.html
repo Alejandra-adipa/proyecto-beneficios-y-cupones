@@ -33,6 +33,7 @@
     .badge-si  { background: #e6f9f0; color: #1a7a4a; }
     .badge-no  { background: #fdecea; color: #c0392b; }
     .badge-nd  { background: #f0ecff; color: #704EFD; }
+    .badge-verified { background: #e6f9f0; color: #1a7a4a; }
     .cupon-destacado { margin-top: 16px; padding: 14px 16px; border: 2px dashed #704EFD; border-radius: 8px; background: #f4f1ff; }
     .cupon-destacado .cupon-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
     .cupon-destacado .cupon-codigo { font-size: 20px; font-weight: bold; color: #333; letter-spacing: 0.04em; }
@@ -42,6 +43,8 @@
     .cupon-extra .codigo { font-weight: bold; font-size: 14px; }
     .cupon-extra .tipo { font-size: 12px; color: #888; }
     .cupon-extra .btn-mini { width: auto; height: 32px; padding: 0 12px; font-size: 12px; margin-top: 0; }
+    .btn-hubspot { display: inline-block; padding: 8px 16px; background: #ff7a59; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
+    .btn-hubspot:hover { background: #e8603a; }
   </style>
 </head>
 
@@ -82,6 +85,12 @@
       <div class="dato-fila">
         <span class="dato-etiqueta">Beneficiario Adipartners</span>
         <span class="dato-valor" id="rAdipartners">—</span>
+      </div>
+      <div class="dato-fila">
+        <span class="dato-etiqueta">Ver en HubSpot</span>
+        <span class="dato-valor">
+          <a id="rUrlHubspot" href="#" target="_blank" class="btn-hubspot">Abrir contacto →</a>
+        </span>
       </div>
 
       <div class="seccion-titulo">Cupón de cumpleaños</div>
@@ -153,8 +162,9 @@
     function badge(valor) {
       if (!valor || valor === "null" || valor === "") return `<span class="badge badge-nd">Sin datos</span>`;
       const v = valor.toString().toLowerCase();
+      if (v === "verified") return `<span class="badge badge-verified">✓ Verified</span>`;
       if (v === "si" || v === "sí" || v === "true") return `<span class="badge badge-si">✓ Sí</span>`;
-      if (v === "no" || v === "false")               return `<span class="badge badge-no">✗ No</span>`;
+      if (v === "no" || v === "false") return `<span class="badge badge-no">✗ No</span>`;
       return `<span class="badge badge-nd">${valor}</span>`;
     }
 
@@ -174,23 +184,31 @@
       document.getElementById("rCuponCodigo").textContent  = data.cupon_cumpleanos || "Sin cupón";
       document.getElementById("rFechaEntrega").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
 
+      // URL HubSpot
+      const urlHubspot = document.getElementById("rUrlHubspot");
+      urlHubspot.href = data.url_hubspot || "#";
+
+      // Cupones adicionales — solo muestra los que tienen valor
       if (data.cupones_adicionales && data.cupones_adicionales.length > 0) {
-        const lista = document.getElementById("listaCuponesExtra");
-        lista.innerHTML = "";
-        data.cupones_adicionales.forEach(c => {
-          const div = document.createElement("div");
-          div.className = "cupon-extra";
-          const codigo = (c.codigo || "—").replace(/'/g, "\\'");
-          div.innerHTML = `
-            <div>
-              <div class="tipo">${c.tipo || "Cupón"}</div>
-              <div class="codigo">${c.codigo || "—"}</div>
-            </div>
-            <button class="btn-mini" onclick="copiarTexto('${codigo}', this)">Copiar</button>
-          `;
-          lista.appendChild(div);
-        });
-        document.getElementById("seccionExtras").classList.remove("hidden");
+        const cuponesFiltrados = data.cupones_adicionales.filter(c => c.codigo && c.codigo.trim() !== "" && c.codigo !== "null");
+        if (cuponesFiltrados.length > 0) {
+          const lista = document.getElementById("listaCuponesExtra");
+          lista.innerHTML = "";
+          cuponesFiltrados.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "cupon-extra";
+            const codigo = (c.codigo || "—").replace(/'/g, "\\'");
+            div.innerHTML = `
+              <div>
+                <div class="tipo">${c.tipo || "Cupón"}</div>
+                <div class="codigo">${c.codigo || "—"}</div>
+              </div>
+              <button class="btn-mini" onclick="copiarTexto('${codigo}', this)">Copiar</button>
+            `;
+            lista.appendChild(div);
+          });
+          document.getElementById("seccionExtras").classList.remove("hidden");
+        }
       }
 
       document.getElementById("resultadoBox").classList.remove("hidden");
