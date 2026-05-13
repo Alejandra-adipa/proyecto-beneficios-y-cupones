@@ -204,14 +204,21 @@
       document.getElementById("rFechaEntrega").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
 
       // Estado del cupón de cumpleaños
-      let estadoCumple = "";
-      if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
-        const cupCumple = data.cupones_estado.find(c => c.Tipo === "Cupón Cumpleaños");
-        if (cupCumple && cupCumple.Data && cupCumple.Data[0]) {
-          estadoCumple = estadoCupon(cupCumple.Data[0].date_expires);
-        }
-      }
-      document.getElementById("rEstadoCupon").innerHTML = estadoCumple;
+let estadoCumple = "";
+if (data.cupones_estado) {
+  const ce = data.cupones_estado;
+  if (Array.isArray(ce)) {
+    // Si es array busca el de cumpleaños
+    const cupCumple = ce.find(c => c.tipo === "Cupón Cumpleaños" || c.Tipo === "Cupón Cumpleaños");
+    if (cupCumple && cupCumple.data && cupCumple.data[0]) {
+      estadoCumple = estadoCupon(cupCumple.data[0].date_expires);
+    }
+  } else if (ce.data && ce.data[0]) {
+    // Si es objeto único
+    estadoCumple = estadoCupon(ce.data[0].date_expires);
+  }
+}
+document.getElementById("rEstadoCupon").innerHTML = estadoCumple;
 
       // Mensaje para el contacto
       const nombre = data.nombre || "estimado/a";
