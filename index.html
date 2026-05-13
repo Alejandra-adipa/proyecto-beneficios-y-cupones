@@ -312,7 +312,15 @@
           body: JSON.stringify({ email })
         });
 
-        const data = await res.json();
+        const textoRespuesta = await res.text();
+
+let data;
+try {
+  data = JSON.parse(textoRespuesta);
+} catch (error) {
+  console.error("Respuesta no JSON desde Make:", textoRespuesta);
+  throw new Error("Make no devolvió un JSON válido.");
+}
 
         console.log("Respuesta completa desde Make:", data);
         console.log("cupones_estado recibido:", data.cupones_estado);
