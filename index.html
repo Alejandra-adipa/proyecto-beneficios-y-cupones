@@ -10,25 +10,98 @@
     .container { max-width: 620px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     img.logo { width: 160px; display: block; margin: 0 auto 25px; }
     h1 { font-size: 22px; margin-bottom: 25px; text-align: center; color: #333; }
+
     label { font-weight: bold; margin-top: 18px; display: block; color: #444; }
-    input, select, button, textarea { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+
+    input, select, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
     input, select, button { height: 45px; }
-    textarea { height: 200px; resize: vertical; font-family: inherit; background: #f9f9f9; border: 1px solid #704EFD; line-height: 1.5; font-size: 13px; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #704EFD; box-shadow: 0 0 5px rgba(112, 78, 253, 0.2); }
-    button { background-color: #704EFD; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; transition: all 0.3s; }
+
+    textarea {
+      height: 200px;
+      resize: vertical;
+      font-family: inherit;
+      background: #f9f9f9;
+      border: 1px solid #704EFD;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #704EFD;
+      box-shadow: 0 0 5px rgba(112, 78, 253, 0.2);
+    }
+
+    button {
+      background-color: #704EFD;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
     button:hover:not(:disabled) { background-color: #5a3ecf; }
     button:disabled { background-color: #ccc; cursor: not-allowed; }
+
     .btn-copiar { background-color: #28a745; margin-top: 10px; }
     .btn-copiar:hover:not(:disabled) { background-color: #218838; }
     .btn-copiado { background-color: #333 !important; }
-    .mensaje { margin-top: 20px; font-size: 14px; text-align: center; font-weight: 500; }
+
+    .mensaje {
+      margin-top: 20px;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 500;
+    }
+
     .hidden { display: none; }
-    .resultado-box { margin-top: 24px; border-top: 2px solid #eee; padding-top: 20px; }
-    .dato-fila { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+
+    .resultado-box {
+      margin-top: 24px;
+      border-top: 2px solid #eee;
+      padding-top: 20px;
+    }
+
+    .dato-fila {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+
     .dato-fila:last-child { border-bottom: none; }
+
     .dato-etiqueta { color: #666; font-weight: bold; }
-    .dato-valor { color: #333; text-align: right; max-width: 60%; word-break: break-word; }
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap; }
+
+    .dato-valor {
+      color: #333;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-word;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
     .badge-si  { background: #e6f9f0; color: #1a7a4a; }
     .badge-no  { background: #fdecea; color: #c0392b; }
     .badge-nd  { background: #f0ecff; color: #704EFD; }
@@ -38,20 +111,100 @@
     .badge-usado { background: #fff4e5; color: #b45f06; }
     .badge-sinlimite { background: #f0ecff; color: #704EFD; }
     .badge-noencontrado { background: #f5f5f5; color: #777; }
-    .cupon-destacado { margin-top: 16px; padding: 14px 16px; border: 2px dashed #704EFD; border-radius: 8px; background: #f4f1ff; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+    .cupon-destacado {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 2px dashed #704EFD;
+      border-radius: 8px;
+      background: #f4f1ff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
     .cupon-destacado-info { flex: 1; min-width: 0; }
-    .cupon-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .cupon-codigo { font-size: 20px; font-weight: bold; color: #333; letter-spacing: 0.04em; word-break: break-word; }
-    .cupon-fecha { font-size: 12px; color: #888; margin-top: 4px; }
-    .seccion-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 22px; margin-bottom: 8px; border-bottom: 1px solid #ede9ff; padding-bottom: 4px; }
-    .cupon-extra { padding: 10px 14px; background: #f9f7ff; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+    .cupon-titulo {
+      font-size: 12px;
+      font-weight: bold;
+      color: #704EFD;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .cupon-codigo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      letter-spacing: 0.04em;
+      word-break: break-word;
+    }
+
+    .cupon-fecha {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .seccion-titulo {
+      font-size: 12px;
+      font-weight: bold;
+      color: #704EFD;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 22px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #ede9ff;
+      padding-bottom: 4px;
+    }
+
+    .cupon-extra {
+      padding: 10px 14px;
+      background: #f9f7ff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
     .cupon-extra-info { flex: 1; min-width: 0; }
     .cupon-extra .codigo { font-weight: bold; font-size: 14px; word-break: break-word; }
     .cupon-extra .tipo { font-size: 12px; color: #888; }
     .cupon-extra .vence { font-size: 11px; color: #aaa; margin-top: 2px; }
-    .cupon-extra-acciones { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .btn-mini { width: auto; height: 32px; padding: 0 12px; font-size: 12px; margin-top: 0; }
-    .btn-hubspot { display: inline-block; padding: 8px 16px; background: #ff7a59; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
+
+    .cupon-extra-acciones {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-mini {
+      width: auto;
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      margin-top: 0;
+    }
+
+    .btn-hubspot {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #ff7a59;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
     .btn-hubspot:hover { background: #e8603a; }
   </style>
 </head>
@@ -64,6 +217,7 @@
 
     <label for="email">Correo electrónico</label>
     <input type="email" id="email" placeholder="Ingresa el correo registrado en Adipa" required>
+
     <button id="btnBuscar" onclick="buscarContacto()">Buscar contacto</button>
     <div class="mensaje" id="mensaje"></div>
 
@@ -123,8 +277,8 @@
 
       <div class="seccion-titulo" style="margin-top: 24px;">Mensaje para el contacto</div>
       <textarea id="mensajeContacto"></textarea>
-      <button class="btn-copiar" id="btnCopiarMensaje" onclick="copiarMensaje()">Copiar mensaje</button>
 
+      <button class="btn-copiar" id="btnCopiarMensaje" onclick="copiarMensaje()">Copiar mensaje</button>
       <button onclick="reiniciar()" style="background-color: #666; margin-top: 20px;">Hacer otra consulta</button>
     </div>
   </div>
@@ -160,8 +314,8 @@
 
         const data = await res.json();
 
-        console.log("Respuesta Make:", data);
-        console.log("Cupones normalizados:", normalizarCupones(data.cupones_estado || data.cupones || []));
+        console.log("Respuesta completa desde Make:", data);
+        console.log("cupones_estado recibido:", data.cupones_estado);
 
         if (!data || data.error || !data.nombre) {
           mensaje.textContent = "No se encontró ningún contacto con ese correo.";
@@ -170,11 +324,12 @@
         }
 
         mostrarResultado(data);
+
         mensaje.textContent = "Contacto encontrado.";
         mensaje.style.color = "green";
 
       } catch (e) {
-        console.error(e);
+        console.error("Error al consultar Make:", e);
         mensaje.textContent = "Error al conectar con el servidor.";
         mensaje.style.color = "red";
       } finally {
@@ -259,7 +414,14 @@
     }
 
     function obtenerRespuestaWoo(cupon) {
-      let dataWoo = cupon.Data ?? cupon.data ?? cupon.Body ?? cupon.body ?? [];
+      let dataWoo =
+        cupon.Data ??
+        cupon.data ??
+        cupon.Body ??
+        cupon.body ??
+        cupon.Respuesta ??
+        cupon.respuesta ??
+        null;
 
       dataWoo = parsePosibleJSON(dataWoo);
 
@@ -277,61 +439,87 @@
     }
 
     function normalizarCupones(cuponesRaw) {
-      let cupones = parsePosibleJSON(cuponesRaw);
+      let entrada = parsePosibleJSON(cuponesRaw);
+      const encontrados = [];
 
-      /*
-        Make puede devolver el Array aggregator de distintas formas:
-        - como array directo: [...]
-        - como texto JSON: "[...]"
-        - como objeto contenedor: { array: [...] }, { Array: [...] }, { "Array[]": [...] }
-      */
-      if (!Array.isArray(cupones) && cupones && typeof cupones === "object") {
-        cupones =
-          cupones.array ||
-          cupones.Array ||
-          cupones["Array[]"] ||
-          cupones.cupones_estado ||
-          cupones.cupones ||
-          cupones.data ||
-          cupones.Data ||
-          cupones;
-      }
+      function buscarCupones(valor) {
+        valor = parsePosibleJSON(valor);
 
-      cupones = parsePosibleJSON(cupones);
+        if (!valor) return;
 
-      if (!Array.isArray(cupones)) {
-        cupones = cupones && typeof cupones === "object" ? [cupones] : [];
-      }
+        if (Array.isArray(valor)) {
+          valor.forEach(item => buscarCupones(item));
+          return;
+        }
 
-      return cupones
-        .map(c => {
-          const item = parsePosibleJSON(c) || {};
-          const woo = obtenerRespuestaWoo(item);
+        if (typeof valor !== "object") return;
 
-          const tipo = item.Tipo ?? item.tipo ?? "";
-          const codigo = item.Codigo ?? item.codigo ?? item.Code ?? item.code ?? "";
+        const tipo =
+          valor.Tipo ??
+          valor.tipo ??
+          valor.TIPO ??
+          valor["Tipo"] ??
+          valor["tipo"] ??
+          "";
 
-          return {
-            ...item,
-            tipo,
-            codigo,
+        const codigo =
+          valor.Codigo ??
+          valor.codigo ??
+          valor.Código ??
+          valor.CÓDIGO ??
+          valor.Code ??
+          valor.code ??
+          valor["Codigo"] ??
+          valor["codigo"] ??
+          valor["Código"] ??
+          "";
+
+        const tieneFormatoCupon =
+          String(tipo || "").trim() !== "" ||
+          String(codigo || "").trim() !== "";
+
+        if (tieneFormatoCupon) {
+          const woo = obtenerRespuestaWoo(valor);
+
+          encontrados.push({
+            ...valor,
+            tipo: String(tipo || "").trim(),
+            codigo: String(codigo || "").trim(),
             woo,
             dateExpires: woo?.date_expires ?? woo?.date_expires_gmt ?? null,
             usageCount: woo?.usage_count ?? null,
             usageLimit: woo?.usage_limit ?? null
-          };
-        })
-        .filter(c => String(c.codigo || "").trim() !== "");
+          });
+
+          return;
+        }
+
+        Object.values(valor).forEach(v => buscarCupones(v));
+      }
+
+      buscarCupones(entrada);
+
+      return encontrados.filter(c => String(c.codigo || "").trim() !== "");
     }
 
     function esCuponCumpleanos(cupon) {
-      return String(cupon.tipo || "").trim().toLowerCase() === "cupón cumpleaños";
+      const tipo = String(cupon.tipo || "").trim().toLowerCase();
+      return tipo === "cupón cumpleaños" || tipo === "cupon cumpleaños";
     }
 
     function mostrarResultado(data) {
-      const cupones = normalizarCupones(data.cupones_estado || data.cupones || []);
-      const cupCumple = cupones.find(esCuponCumpleanos);
+      const cupones = normalizarCupones(
+        data.cupones_estado ||
+        data.cupones ||
+        data.cupones_adicionales ||
+        data.Array ||
+        data.array ||
+        []
+      );
 
+      console.log("Cupones finales para pintar:", cupones);
+
+      const cupCumple = cupones.find(esCuponCumpleanos);
       const codigoCumple = cupCumple?.codigo || data.cupon_cumpleanos || "";
 
       document.getElementById("rNombre").textContent = data.nombre || "—";
@@ -384,6 +572,8 @@ Saludos,`;
 
       const cuponesExtra = cupones.filter(c => !esCuponCumpleanos(c));
 
+      console.log("Cupones extra para mostrar:", cuponesExtra);
+
       if (cuponesExtra.length === 0) {
         seccion.classList.add("hidden");
         return;
@@ -406,13 +596,16 @@ Saludos,`;
 
         const info = document.createElement("div");
         info.className = "cupon-extra-info";
+
         info.innerHTML = `
-          <div class="tipo">${tipo}</div>
+          <div class="tipo"></div>
           <div class="codigo"></div>
-          <div class="vence">${fechaVence}</div>
+          <div class="vence"></div>
         `;
 
+        info.querySelector(".tipo").textContent = tipo;
         info.querySelector(".codigo").textContent = codigoRaw;
+        info.querySelector(".vence").textContent = fechaVence;
 
         const acciones = document.createElement("div");
         acciones.className = "cupon-extra-acciones";
