@@ -203,22 +203,23 @@
       document.getElementById("rCuponCodigo").textContent = data.cupon_cumpleanos || "Sin cupón";
       document.getElementById("rFechaEntrega").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
 
-      // Estado del cupón de cumpleaños
-let estadoCumple = "";
-if (data.cupones_estado) {
-  const ce = data.cupones_estado;
-  if (Array.isArray(ce)) {
-    // Si es array busca el de cumpleaños
-    const cupCumple = ce.find(c => c.tipo === "Cupón Cumpleaños" || c.Tipo === "Cupón Cumpleaños");
-    if (cupCumple && cupCumple.data && cupCumple.data[0]) {
-      estadoCumple = estadoCupon(cupCumple.data[0].date_expires);
-    }
-  } else if (ce.data && ce.data[0]) {
-    // Si es objeto único
-    estadoCumple = estadoCupon(ce.data[0].date_expires);
-  }
-}
-document.getElementById("rEstadoCupon").innerHTML = estadoCumple;
+      // Estado del cupón de cumpleaños — soporta objeto único o array
+      let estadoCumple = "";
+      if (data.cupones_estado) {
+        const ce = data.cupones_estado;
+        if (Array.isArray(ce)) {
+          const cupCumple = ce.find(c =>
+            (c.Tipo || c.tipo) === "Cupón Cumpleaños"
+          );
+          if (cupCumple) {
+            const dataArr = cupCumple.Data || cupCumple.data || [];
+            if (dataArr[0]) estadoCumple = estadoCupon(dataArr[0].date_expires);
+          }
+        } else if (ce.data && ce.data[0]) {
+          estadoCumple = estadoCupon(ce.data[0].date_expires);
+        }
+      }
+      document.getElementById("rEstadoCupon").innerHTML = estadoCumple;
 
       // Mensaje para el contacto
       const nombre = data.nombre || "estimado/a";
@@ -238,23 +239,30 @@ Saludos,`;
 
       // Cupones adicionales con estado vigente/vencido
       if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
-        const cuponesFiltrados = data.cupones_estado.filter(c =>
-          c.Codigo && c.Codigo.trim() !== "" && c.Tipo !== "Cupón Cumpleaños"
-        );
+        const cuponesFiltrados = data.cupones_estado.filter(c => {
+          const cod = c.Codigo || c.codigo || "";
+          const tip = c.Tipo || c.tipo || "";
+          return cod.trim() !== "" && tip !== "Cupón Cumpleaños";
+        });
+
         if (cuponesFiltrados.length > 0) {
           const lista = document.getElementById("listaCuponesExtra");
           lista.innerHTML = "";
           cuponesFiltrados.forEach(c => {
-            const codigo = (c.Codigo || "—").replace(/'/g, "\\'");
-            const dateExpires = c.Data && c.Data[0] ? c.Data[0].date_expires : null;
+            const tipo = c.Tipo || c.tipo || "Cupón";
+            const codigoRaw = c.Codigo || c.codigo || "—";
+            const codigo = codigoRaw.replace(/'/g, "\\'");
+            const dataArr = c.Data || c.data || [];
+            const dateExpires = dataArr[0] ? dataArr[0].date_expires : null;
             const estadoHtml = estadoCupon(dateExpires);
             const fechaVence = dateExpires ? "Vence: " + formatFecha(dateExpires) : "Sin fecha límite";
+
             const div = document.createElement("div");
             div.className = "cupon-extra";
             div.innerHTML = `
               <div class="cupon-extra-info">
-                <div class="tipo">${c.Tipo || "Cupón"}</div>
-                <div class="codigo">${c.Codigo || "—"}</div>
+                <div class="tipo">${tipo}</div>
+                <div class="codigo">${codigoRaw}</div>
                 <div class="vence">${fechaVence}</div>
               </div>
               <div class="cupon-extra-acciones">
