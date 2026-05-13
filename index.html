@@ -13,7 +13,7 @@
     label { font-weight: bold; margin-top: 18px; display: block; color: #444; }
     input, select, button, textarea { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
     input, select, button { height: 45px; }
-    textarea { height: 100px; resize: vertical; font-family: inherit; background: #f9f9f9; border: 1px solid #704EFD; line-height: 1.5; }
+    textarea { height: 200px; resize: vertical; font-family: inherit; background: #f9f9f9; border: 1px solid #704EFD; line-height: 1.5; font-size: 13px; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #704EFD; box-shadow: 0 0 5px rgba(112, 78, 253, 0.2); }
     button { background-color: #704EFD; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; transition: all 0.3s; }
     button:hover:not(:disabled) { background-color: #5a3ecf; }
@@ -22,7 +22,6 @@
     .btn-copiar:hover:not(:disabled) { background-color: #218838; }
     .btn-copiado { background-color: #333 !important; }
     .mensaje { margin-top: 20px; font-size: 14px; text-align: center; font-weight: 500; }
-    .info-nota { font-size: 12px; color: #666; font-style: italic; margin-top: 5px; }
     .hidden { display: none; }
     .resultado-box { margin-top: 24px; border-top: 2px solid #eee; padding-top: 20px; }
     .dato-fila { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
@@ -34,22 +33,28 @@
     .badge-no  { background: #fdecea; color: #c0392b; }
     .badge-nd  { background: #f0ecff; color: #704EFD; }
     .badge-verified { background: #e6f9f0; color: #1a7a4a; }
-    .cupon-destacado { margin-top: 16px; padding: 14px 16px; border: 2px dashed #704EFD; border-radius: 8px; background: #f4f1ff; }
-    .cupon-destacado .cupon-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .cupon-destacado .cupon-codigo { font-size: 20px; font-weight: bold; color: #333; letter-spacing: 0.04em; }
-    .cupon-destacado .cupon-fecha { font-size: 12px; color: #888; margin-top: 4px; }
+    .badge-vigente  { background: #e6f9f0; color: #1a7a4a; }
+    .badge-vencido  { background: #fdecea; color: #c0392b; }
+    .badge-sinlimite { background: #f0ecff; color: #704EFD; }
+    .cupon-destacado { margin-top: 16px; padding: 14px 16px; border: 2px dashed #704EFD; border-radius: 8px; background: #f4f1ff; display: flex; justify-content: space-between; align-items: center; }
+    .cupon-destacado-info { flex: 1; }
+    .cupon-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .cupon-codigo { font-size: 20px; font-weight: bold; color: #333; letter-spacing: 0.04em; }
+    .cupon-fecha { font-size: 12px; color: #888; margin-top: 4px; }
     .seccion-titulo { font-size: 12px; font-weight: bold; color: #704EFD; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 22px; margin-bottom: 8px; border-bottom: 1px solid #ede9ff; padding-bottom: 4px; }
-    .cupon-extra { padding: 10px 14px; background: #f9f7ff; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .cupon-extra { padding: 10px 14px; background: #f9f7ff; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .cupon-extra-info { flex: 1; }
     .cupon-extra .codigo { font-weight: bold; font-size: 14px; }
     .cupon-extra .tipo { font-size: 12px; color: #888; }
-    .cupon-extra .btn-mini { width: auto; height: 32px; padding: 0 12px; font-size: 12px; margin-top: 0; }
+    .cupon-extra .vence { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .cupon-extra-acciones { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .btn-mini { width: auto; height: 32px; padding: 0 12px; font-size: 12px; margin-top: 0; }
     .btn-hubspot { display: inline-block; padding: 8px 16px; background: #ff7a59; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
     .btn-hubspot:hover { background: #e8603a; }
   </style>
 </head>
 
 <body>
-
   <img src="https://aula.adipa.cl/pluginfile.php/1/theme_mb2nl/logo/1732710878/LOGOADIPA%202%20%283%29%20%281%29.png" alt="Logo de ADIPA" class="logo">
 
   <div class="container">
@@ -57,15 +62,12 @@
 
     <label for="email">Correo electrónico</label>
     <input type="email" id="email" placeholder="Ingresa el correo registrado en Adipa" required>
-
     <button id="btnBuscar" onclick="buscarContacto()">Buscar contacto</button>
-
     <div class="mensaje" id="mensaje"></div>
 
     <div id="resultadoBox" class="resultado-box hidden">
 
       <div class="seccion-titulo">Información del contacto</div>
-
       <div class="dato-fila">
         <span class="dato-etiqueta">Nombre completo</span>
         <span class="dato-valor" id="rNombre">—</span>
@@ -94,14 +96,19 @@
       </div>
 
       <div class="seccion-titulo">Cupón de cumpleaños</div>
-
       <div class="cupon-destacado">
-        <div class="cupon-titulo">Código del cupón</div>
-        <div class="cupon-codigo" id="rCuponCodigo">—</div>
-        <div class="cupon-fecha" id="rFechaEntrega">Entregado: —</div>
+        <div class="cupon-destacado-info">
+          <div class="cupon-titulo">Código del cupón</div>
+          <div class="cupon-codigo" id="rCuponCodigo">—</div>
+          <div class="cupon-fecha" id="rFechaEntrega">Entregado: —</div>
+        </div>
+        <div id="rEstadoCupon"></div>
       </div>
-
       <button class="btn-copiar" id="btnCopiarCupon" onclick="copiarCupon()">Copiar cupón</button>
+
+      <div class="seccion-titulo" style="margin-top: 24px;">Mensaje para el contacto</div>
+      <textarea id="mensajeContacto"></textarea>
+      <button class="btn-copiar" id="btnCopiarMensaje" onclick="copiarMensaje()">Copiar mensaje</button>
 
       <div id="seccionExtras" class="hidden">
         <div class="seccion-titulo">Otros cupones asociados</div>
@@ -110,7 +117,6 @@
 
       <button onclick="reiniciar()" style="background-color: #666; margin-top: 20px;">Hacer otra consulta</button>
     </div>
-
   </div>
 
   <script>
@@ -168,6 +174,18 @@
       return `<span class="badge badge-nd">${valor}</span>`;
     }
 
+    function estadoCupon(dateExpires) {
+      if (!dateExpires || dateExpires === "null" || dateExpires === "") {
+        return `<span class="badge badge-sinlimite">Sin límite</span>`;
+      }
+      const hoy = new Date();
+      const vence = new Date(dateExpires);
+      if (vence < hoy) {
+        return `<span class="badge badge-vencido">✗ Vencido</span>`;
+      }
+      return `<span class="badge badge-vigente">✓ Vigente</span>`;
+    }
+
     function formatFecha(f) {
       if (!f || f === "null" || f === "") return "—";
       try {
@@ -176,34 +194,66 @@
     }
 
     function mostrarResultado(data) {
-      document.getElementById("rNombre").textContent       = data.nombre || "—";
-      document.getElementById("rFechaNac").textContent     = formatFecha(data.fecha_nacimiento);
-      document.getElementById("rEstadoVerif").innerHTML    = badge(data.estado_verificacion);
-      document.getElementById("rFechaVerif").textContent   = formatFecha(data.fecha_verificacion);
-      document.getElementById("rAdipartners").innerHTML    = badge(data.es_adipartners);
-      document.getElementById("rCuponCodigo").textContent  = data.cupon_cumpleanos || "Sin cupón";
+      document.getElementById("rNombre").textContent      = data.nombre || "—";
+      document.getElementById("rFechaNac").textContent    = formatFecha(data.fecha_nacimiento);
+      document.getElementById("rEstadoVerif").innerHTML   = badge(data.estado_verificacion);
+      document.getElementById("rFechaVerif").textContent  = formatFecha(data.fecha_verificacion);
+      document.getElementById("rAdipartners").innerHTML   = badge(data.es_adipartners);
+      document.getElementById("rUrlHubspot").href         = data.url_hubspot || "#";
+      document.getElementById("rCuponCodigo").textContent = data.cupon_cumpleanos || "Sin cupón";
       document.getElementById("rFechaEntrega").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
 
-      // URL HubSpot
-      const urlHubspot = document.getElementById("rUrlHubspot");
-      urlHubspot.href = data.url_hubspot || "#";
+      // Estado del cupón de cumpleaños
+      let estadoCumple = "";
+      if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
+        const cupCumple = data.cupones_estado.find(c => c.Tipo === "Cupón Cumpleaños");
+        if (cupCumple && cupCumple.Data && cupCumple.Data[0]) {
+          estadoCumple = estadoCupon(cupCumple.Data[0].date_expires);
+        }
+      }
+      document.getElementById("rEstadoCupon").innerHTML = estadoCumple;
 
-      // Cupones adicionales — solo muestra los que tienen valor
-      if (data.cupones_adicionales && data.cupones_adicionales.length > 0) {
-        const cuponesFiltrados = data.cupones_adicionales.filter(c => c.codigo && c.codigo.trim() !== "" && c.codigo !== "null");
+      // Mensaje para el contacto
+      const nombre = data.nombre || "estimado/a";
+      const cupon = data.cupon_cumpleanos || "—";
+      document.getElementById("mensajeContacto").value =
+`Hola, ${nombre}
+
+Enviamos a continuación tu cupón de cumpleaños: ${cupon}
+
+Tienes 7 días a contar de la fecha de entrega para usarlo, válido solo para cursos en modalidad Asincrónica, con tope de valor de $30.000.-
+
+Para mejor orientación, te facilitamos éste enlace donde se detallan los cursos asincrónicos disponibles, así puedes elegir tu mejor opción y agregar el curso al carrito, para luego aplicar el cupón: https://adipa.cl/programas-asincronicos/
+
+Si tienes cualquier duda, estaremos muy atentos.
+
+Saludos,`;
+
+      // Cupones adicionales con estado vigente/vencido
+      if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
+        const cuponesFiltrados = data.cupones_estado.filter(c =>
+          c.Codigo && c.Codigo.trim() !== "" && c.Tipo !== "Cupón Cumpleaños"
+        );
         if (cuponesFiltrados.length > 0) {
           const lista = document.getElementById("listaCuponesExtra");
           lista.innerHTML = "";
           cuponesFiltrados.forEach(c => {
+            const codigo = (c.Codigo || "—").replace(/'/g, "\\'");
+            const dateExpires = c.Data && c.Data[0] ? c.Data[0].date_expires : null;
+            const estadoHtml = estadoCupon(dateExpires);
+            const fechaVence = dateExpires ? "Vence: " + formatFecha(dateExpires) : "Sin fecha límite";
             const div = document.createElement("div");
             div.className = "cupon-extra";
-            const codigo = (c.codigo || "—").replace(/'/g, "\\'");
             div.innerHTML = `
-              <div>
-                <div class="tipo">${c.tipo || "Cupón"}</div>
-                <div class="codigo">${c.codigo || "—"}</div>
+              <div class="cupon-extra-info">
+                <div class="tipo">${c.Tipo || "Cupón"}</div>
+                <div class="codigo">${c.Codigo || "—"}</div>
+                <div class="vence">${fechaVence}</div>
               </div>
-              <button class="btn-mini" onclick="copiarTexto('${codigo}', this)">Copiar</button>
+              <div class="cupon-extra-acciones">
+                ${estadoHtml}
+                <button class="btn-mini" onclick="copiarTexto('${codigo}', this)">Copiar</button>
+              </div>
             `;
             lista.appendChild(div);
           });
@@ -215,9 +265,18 @@
     }
 
     function copiarCupon() {
-      const codigo = document.getElementById("rCuponCodigo").textContent;
-      const btn = document.getElementById("btnCopiarCupon");
-      copiarTexto(codigo, btn);
+      copiarTexto(document.getElementById("rCuponCodigo").textContent, document.getElementById("btnCopiarCupon"));
+    }
+
+    function copiarMensaje() {
+      const texto = document.getElementById("mensajeContacto").value;
+      const btn = document.getElementById("btnCopiarMensaje");
+      navigator.clipboard.writeText(texto).then(() => {
+        const original = btn.innerText;
+        btn.innerText = "¡Copiado!";
+        btn.classList.add("btn-copiado");
+        setTimeout(() => { btn.innerText = original; btn.classList.remove("btn-copiado"); }, 1500);
+      });
     }
 
     function copiarTexto(texto, btn) {
@@ -225,10 +284,7 @@
         const original = btn.innerText;
         btn.innerText = "¡Copiado!";
         btn.classList.add("btn-copiado");
-        setTimeout(() => {
-          btn.innerText = original;
-          btn.classList.remove("btn-copiado");
-        }, 1500);
+        setTimeout(() => { btn.innerText = original; btn.classList.remove("btn-copiado"); }, 1500);
       });
     }
 
@@ -238,6 +294,7 @@
       document.getElementById("resultadoBox").classList.add("hidden");
       document.getElementById("seccionExtras").classList.add("hidden");
       document.getElementById("listaCuponesExtra").innerHTML = "";
+      document.getElementById("mensajeContacto").value = "";
     }
 
     document.getElementById("email").addEventListener("keydown", e => {
