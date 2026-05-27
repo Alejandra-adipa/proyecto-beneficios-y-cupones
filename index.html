@@ -220,7 +220,13 @@
         }
       }
       document.getElementById("rEstadoCupon").innerHTML = estadoCupon(dateExpiresCumple);
-      const cumpleVencido = dateExpiresCumple && new Date(dateExpiresCumple) < new Date();
+const cumpleVencido = dateExpiresCumple && new Date(dateExpiresCumple) < new Date();
+const tieneCuponCumple = cupon && cupon !== "—" && cupon !== "Sin cupón" && cupon !== "null";
+
+if (!tieneCuponCumple) {
+  document.getElementById("mensajeContacto").value = "";
+} else if (cumpleVencido) {
+  document.getElementById("mensajeContacto").value =
 
       // Mensaje dinámico cupón cumpleaños
       if (cumpleVencido) {
