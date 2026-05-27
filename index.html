@@ -51,6 +51,7 @@
     .btn-mini { width: auto; height: 32px; padding: 0 12px; font-size: 12px; margin-top: 0; }
     .btn-hubspot { display: inline-block; padding: 8px 16px; background: #ff7a59; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
     .btn-hubspot:hover { background: #e8603a; }
+    .seccion-mensaje { margin-top: 24px; }
   </style>
 </head>
 
@@ -106,9 +107,11 @@
       </div>
       <button class="btn-copiar" id="btnCopiarCupon" onclick="copiarCupon()">Copiar cupón</button>
 
-      <div class="seccion-titulo" style="margin-top: 24px;">Mensaje para el contacto</div>
-      <textarea id="mensajeContacto"></textarea>
-      <button class="btn-copiar" id="btnCopiarMensaje" onclick="copiarMensaje()">Copiar mensaje</button>
+      <div id="seccionMensajeCumple" class="seccion-mensaje hidden">
+        <div class="seccion-titulo">Mensaje para el contacto</div>
+        <textarea id="mensajeContacto"></textarea>
+        <button class="btn-copiar" id="btnCopiarMensaje" onclick="copiarMensaje()">Copiar mensaje</button>
+      </div>
 
       <div id="seccionExtras" class="hidden">
         <div class="seccion-titulo">Otros cupones asociados</div>
@@ -202,8 +205,9 @@
       document.getElementById("rFechaEntrega").textContent = "Entregado: " + formatFecha(data.fecha_entrega_cupon);
 
       const nombre = data.nombre || "estimado/a";
-      const cupon = data.cupon_cumpleanos || "—";
+      const cupon = data.cupon_cumpleanos || "";
       const fechaEntrega = formatFecha(data.fecha_entrega_cupon);
+      const tieneCuponCumple = cupon && cupon.trim() !== "" && cupon !== "null";
 
       // Estado cupón cumpleaños
       let dateExpiresCumple = null;
@@ -219,18 +223,15 @@
           dateExpiresCumple = ce.data[0].date_expires;
         }
       }
-      document.getElementById("rEstadoCupon").innerHTML = estadoCupon(dateExpiresCumple);
-const cumpleVencido = dateExpiresCumple && new Date(dateExpiresCumple) < new Date();
-const tieneCuponCumple = cupon && cupon !== "—" && cupon !== "Sin cupón" && cupon !== "null";
+      document.getElementById("rEstadoCupon").innerHTML = tieneCuponCumple ? estadoCupon(dateExpiresCumple) : "";
 
-if (!tieneCuponCumple) {
-  document.getElementById("mensajeContacto").value = "";
-} else if (cumpleVencido) {
-  document.getElementById("mensajeContacto").value =
-
-      // Mensaje dinámico cupón cumpleaños
-      if (cumpleVencido) {
-        document.getElementById("mensajeContacto").value =
+      // Mensaje de cumpleaños solo si tiene cupón
+      const seccionMensaje = document.getElementById("seccionMensajeCumple");
+      if (tieneCuponCumple) {
+        seccionMensaje.classList.remove("hidden");
+        const cumpleVencido = dateExpiresCumple && new Date(dateExpiresCumple) < new Date();
+        if (cumpleVencido) {
+          document.getElementById("mensajeContacto").value =
 `Hola, ${nombre}
 
 Revisamos el cupón de cumpleaños asociado a tu solicitud: ${cupon}
@@ -240,8 +241,8 @@ Este cupón fue entregado el día ${fechaEntrega} y actualmente se encuentra ven
 De todas formas, si tienes alguna duda o necesitas apoyo con otra alternativa, quedamos atentos para ayudarte.
 
 ¡Saludos!`;
-      } else {
-        document.getElementById("mensajeContacto").value =
+        } else {
+          document.getElementById("mensajeContacto").value =
 `Hola, ${nombre}
 
 Enviamos a continuación tu cupón de cumpleaños: ${cupon}
@@ -253,6 +254,9 @@ Para mejor orientación, te facilitamos éste enlace donde se detallan los curso
 Si tienes cualquier duda, estaremos muy atentos.
 
 Saludos,`;
+        }
+      } else {
+        seccionMensaje.classList.add("hidden");
       }
 
       // Cupones adicionales
@@ -314,6 +318,7 @@ Saludos,`;
     function cargarMensaje(btn) {
       const div = btn.closest(".cupon-extra");
       const mensaje = div.getAttribute("data-mensaje");
+      document.getElementById("seccionMensajeCumple").classList.remove("hidden");
       document.getElementById("mensajeContacto").value = mensaje;
       document.getElementById("mensajeContacto").scrollIntoView({ behavior: "smooth" });
       const original = btn.innerText;
@@ -350,6 +355,7 @@ Saludos,`;
       document.getElementById("mensaje").textContent = "";
       document.getElementById("resultadoBox").classList.add("hidden");
       document.getElementById("seccionExtras").classList.add("hidden");
+      document.getElementById("seccionMensajeCumple").classList.add("hidden");
       document.getElementById("listaCuponesExtra").innerHTML = "";
       document.getElementById("mensajeContacto").value = "";
     }
