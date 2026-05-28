@@ -529,21 +529,32 @@
         }
       }
 
-      if (tieneCuponCumple) {
-        cupones.push({
-          tipo: "Cupón de Cumpleaños",
-          codigo: cuponCumple,
-          textoFecha: "Entregado: " + formatFecha(data.fecha_entrega_cupon),
-          dateExpires: dateExpiresCumple,
-          mensaje: crearMensajeCupon({
-            nombre: nombre,
-            tipo: "Cupón de Cumpleaños",
-            codigo: cuponCumple,
-            fechaEntrega: formatFecha(data.fecha_entrega_cupon),
-            dateExpires: dateExpiresCumple
-          })
-        });
-      }
+    cupones.push({
+  tipo: "Cupón de Cumpleaños",
+  codigo: tieneCuponCumple ? cuponCumple : "Sin cupón asociado",
+  textoFecha: tieneCuponCumple
+    ? "Entregado: " + formatFecha(data.fecha_entrega_cupon)
+    : "Sin fecha de entrega",
+  dateExpires: tieneCuponCumple ? dateExpiresCumple : null,
+  sinCupon: !tieneCuponCumple,
+  mensaje: tieneCuponCumple
+    ? crearMensajeCupon({
+        nombre: nombre,
+        tipo: "Cupón de Cumpleaños",
+        codigo: cuponCumple,
+        fechaEntrega: formatFecha(data.fecha_entrega_cupon),
+        dateExpires: dateExpiresCumple
+      })
+    : `Hola, ${nombre}
+
+Revisamos tu información y, por el momento, no encontramos un cupón de cumpleaños asociado a tu contacto.
+
+Si realizaste una solicitud recientemente, podemos revisarla para confirmar el estado del beneficio.
+
+Quedamos atentos para ayudarte.
+
+¡Saludos!`
+});
 
       if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
         data.cupones_estado.forEach(c => {
