@@ -509,14 +509,9 @@
 
   <script>
     const WEBHOOK_CUPONES = "https://hook.us2.make.com/6cskbge9qgwitfxrlcgux851o8agl5e7";
-
-    // Reemplaza esta URL cuando tengas listo el webhook en Make
     const WEBHOOK_SOLICITAR_CUPON = "https://hook.us2.make.com/pcrn15fn4outi020nxp5ywaqt6haxd5r";
-
     let contactoActual = null;
-    let cedulaSolicitudBase64 = null;
-    let cedulaSolicitudTipo = null;
-    let cedulaSolicitudNombre = null;
+    let archivoSolicitudFile = null; // Almacenará el objeto File original binario
     let cuponPendienteActual = null;
 
     async function buscarContacto() {
@@ -533,7 +528,6 @@
       mensaje.textContent = "Buscando contacto...";
       mensaje.style.color = "#666";
       btn.disabled = true;
-
       document.getElementById("resultadoBox").classList.add("hidden");
       document.getElementById("seccionCupones").classList.add("hidden");
       document.getElementById("seccionMensajeCumple").classList.add("hidden");
@@ -541,9 +535,7 @@
       document.getElementById("mensajeContacto").value = "";
 
       contactoActual = null;
-      cedulaSolicitudBase64 = null;
-      cedulaSolicitudTipo = null;
-      cedulaSolicitudNombre = null;
+      archivoSolicitudFile = null;
       cuponPendienteActual = null;
 
       try {
@@ -554,7 +546,6 @@
           },
           body: JSON.stringify({ email })
         });
-
         const data = await res.json();
 
         if (!data || data.error || !data.nombre) {
@@ -567,7 +558,6 @@
 
         mensaje.textContent = "Contacto encontrado.";
         mensaje.style.color = "green";
-
       } catch (e) {
         mensaje.textContent = "Error al conectar con el servidor.";
         mensaje.style.color = "red";
@@ -582,7 +572,6 @@
       }
 
       const v = valor.toString().toLowerCase();
-
       if (v === "verified") {
         return `<span class="badge badge-verified">✓ Verified</span>`;
       }
@@ -609,7 +598,6 @@
 
       const hoy = new Date();
       const vence = new Date(dateExpires);
-
       if (vence < hoy) {
         return `<span class="badge badge-vencido">✗ Vencido</span>`;
       }
@@ -635,7 +623,6 @@
 
     function obtenerPaisDesdeData(data) {
       if (!data) return "";
-
       return (
         data.pais ||
         data.país ||
@@ -654,7 +641,6 @@
 
     function estaVerificado() {
       if (!contactoActual) return false;
-
       const estado = (
         contactoActual.estado_verificacion ||
         contactoActual.verificacion ||
@@ -663,7 +649,6 @@
         contactoActual.validación_manual ||
         ""
       ).toString().toLowerCase().trim();
-
       return (
         estado === "verified" ||
         estado === "verificado" ||
@@ -678,9 +663,7 @@
 
     function mostrarResultado(data) {
       contactoActual = data;
-      cedulaSolicitudBase64 = null;
-      cedulaSolicitudTipo = null;
-      cedulaSolicitudNombre = null;
+      archivoSolicitudFile = null;
       cuponPendienteActual = null;
 
       const paisContacto = obtenerPaisDesdeData(data);
@@ -697,23 +680,19 @@
       const lista = document.getElementById("listaCuponesTodos");
 
       lista.innerHTML = "";
-
       const cupones = [];
 
       const cuponCumple = data.cupon_cumpleanos || "";
       const tieneCuponCumple = cuponCumple && cuponCumple.trim() !== "" && cuponCumple !== "null";
 
       let dateExpiresCumple = null;
-
       if (data.cupones_estado) {
         const ce = data.cupones_estado;
-
         if (Array.isArray(ce)) {
           const encontrado = ce.find(c => {
             const tipo = c.Tipo || c.tipo || "";
             return tipo === "Cupón Cumpleaños" || tipo === "Cupón de Cumpleaños";
           });
-
           if (encontrado) {
             const dataArr = encontrado.Data || encontrado.data || [];
             if (dataArr[0]) {
@@ -811,7 +790,6 @@
       const codigo = document.createElement("div");
       codigo.className = "codigo";
       codigo.textContent = cupon.codigo;
-
       if (cupon.sinCupon) {
         codigo.classList.add("sin-cupon-texto");
       }
@@ -828,7 +806,6 @@
       acciones.className = "cupon-extra-acciones";
 
       const estado = document.createElement("span");
-
       if (cupon.sinCupon) {
         estado.innerHTML = `<span class="badge badge-sincupon">Sin cupón</span>`;
       } else {
@@ -861,7 +838,7 @@
       } else {
         const btnCopiar = document.createElement("button");
         btnCopiar.className = "btn-mini";
-        btnCopiar.textContent = "Copiar";
+        btnCopiar.textContent = "Copy";
         btnCopiar.onclick = function() {
           copiarTexto(cupon.codigo, btnCopiar);
         };
@@ -896,7 +873,8 @@
       return `
         <div class="panel-inner">
           <p class="panel-texto">
-            Este contacto aún no se encuentra verificado. Para habilitar la solicitud del cupón de cumpleaños,
+            Este contacto aún no se encuentra verificado.
+            Para habilitar la solicitud del cupón de cumpleaños,
             adjunta la cédula o documento de identidad.
           </p>
 
@@ -929,7 +907,7 @@
       const respuesta = document.getElementById("respuestaSolicitudCupon");
       const btn = document.getElementById("btnSolicitarCuponPrincipal");
 
-      if (requiereArchivo && !cedulaSolicitudBase64) {
+      if (requiereArchivo && !archivoSolicitudFile) {
         if (respuesta) {
           respuesta.classList.remove("hidden");
           respuesta.className = "respuesta-solicitud error";
@@ -954,33 +932,32 @@
         document.getElementById("mensaje").style.color = "#666";
       }
 
-      const payload = {
-        accion: "solicitar_cupon_cumpleanos",
-        nombre: contactoActual?.nombre || "",
-        email: document.getElementById("email").value.trim(),
-        pais: obtenerPaisContacto(),
-        fecha_nacimiento: contactoActual?.fecha_nacimiento || "",
-        estado_verificacion: contactoActual?.estado_verificacion || "",
-        fecha_verificacion: contactoActual?.fecha_verificacion || "",
-        contacto_verificado: estaVerificado(),
-        es_adipartners: contactoActual?.es_adipartners || "",
-        url_hubspot: contactoActual?.url_hubspot || "",
-        requiere_archivo: requiereArchivo,
-        cedula_base64: cedulaSolicitudBase64,
-        cedula_tipo: cedulaSolicitudTipo,
-        cedula_nombre: cedulaSolicitudNombre,
-        fuente: "formulario_cupones_beneficios"
-      };
+      // Se utiliza FormData para transferir el archivo binario nativo directamente sin Base64
+      const formData = new FormData();
+      formData.append("accion", "solicitar_cupon_cumpleanos");
+      formData.append("nombre", contactoActual?.nombre || "");
+      formData.append("email", document.getElementById("email").value.trim());
+      formData.append("pais", obtenerPaisContacto());
+      formData.append("fecha_nacimiento", contactoActual?.fecha_nacimiento || "");
+      formData.append("estado_verificacion", contactoActual?.estado_verificacion || "");
+      formData.append("fecha_verificacion", contactoActual?.fecha_verificacion || "");
+      formData.append("contacto_verificado", estaVerificado());
+      formData.append("es_adipartners", contactoActual?.es_adipartners || "");
+      formData.append("url_hubspot", contactoActual?.url_hubspot || "");
+      formData.append("requiere_archivo", requiereArchivo);
+      formData.append("fuente", "formulario_cupones_beneficios");
+
+      if (requiereArchivo && archivoSolicitudFile) {
+        // Adjuntamos directamente el binario puro bajo la clave 'cedula_archivo'
+        formData.append("cedula_archivo", archivoSolicitudFile, archivoSolicitudFile.name);
+      }
 
       try {
         const res = await fetch(WEBHOOK_SOLICITAR_CUPON, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
+          body: formData 
+          // Importante: No se definen los headers manualmente. El navegador estructurará 'multipart/form-data'
         });
-
         let data = null;
 
         try {
@@ -1007,11 +984,10 @@
       } finally {
         if (btn) {
           btn.textContent = "Solicitar cupón";
-
           if (estaVerificado()) {
             btn.disabled = false;
           } else {
-            btn.disabled = !cedulaSolicitudBase64;
+            btn.disabled = !archivoSolicitudFile;
           }
         }
       }
@@ -1019,7 +995,6 @@
 
     function mostrarRespuestaSolicitudCupon(data) {
       const respuesta = document.getElementById("respuestaSolicitudCupon");
-
       let mensaje = "Solicitud enviada correctamente.";
 
       if (data) {
@@ -1047,100 +1022,40 @@
 
     function crearMensajeCupon({ nombre, tipo, codigo, fechaEntrega, dateExpires, sinCupon }) {
       if (sinCupon) {
-        return `Hola, ${nombre}
-
-Revisamos tu información y, por el momento, no encontramos un cupón de cumpleaños asociado a tu contacto.
-
-Si realizaste una solicitud recientemente, podemos revisarla para confirmar el estado del beneficio.
-
-Quedamos atentos para ayudarte.
-
-¡Saludos!`;
+        return `Hola, ${nombre}\n\nRevisamos tu información y, por el momento, no encontramos un cupón de cumpleaños asociado a tu contacto.\nSi realizaste una solicitud recientemente, podemos revisarla para confirmar el estado del beneficio.\n\nQuedamos atentos para ayudarte.\n\n¡Saludos!`;
       }
 
       const vencido = dateExpires && new Date(dateExpires) < new Date();
       const tipoLower = tipo.toLowerCase();
-
       const esCumple = tipoLower.includes("cumple");
       const esAdipartners = tipoLower.includes("adipartner");
 
       if (esCumple && vencido) {
-        return `Hola, ${nombre}
-
-Revisamos el cupón de cumpleaños asociado a tu solicitud: ${codigo}
-
-Este cupón fue entregado el día ${fechaEntrega} y actualmente se encuentra vencido, ya que superó el plazo disponible para su uso.
-
-De todas formas, si tienes alguna duda o necesitas apoyo con otra alternativa, quedamos atentos para ayudarte.
-
-¡Saludos!`;
+        return `Hola, ${nombre}\n\nRevisamos el cupón de cumpleaños asociado a tu solicitud: ${codigo}\n\nEste cupón fue entregado el día ${fechaEntrega} y actualmente se encuentra vencido, ya que superó el plazo disponible para su uso.\nDe todas formas, si tienes alguna duda o necesitas apoyo con otra alternativa, quedamos atentos para ayudarte.\n\n¡Saludos!`;
       }
 
       if (esCumple && !vencido) {
-        return `Hola, ${nombre}
-
-Enviamos a continuación tu cupón de cumpleaños: ${codigo}
-
-Tienes 7 días a contar de la fecha de entrega para usarlo, válido solo para cursos en modalidad Asincrónica, con tope de valor de $30.000.-
-
-Para mejor orientación, te facilitamos este enlace donde se detallan los cursos asincrónicos disponibles, así puedes elegir tu mejor opción y agregar el curso al carrito, para luego aplicar el cupón: https://adipa.cl/programas-asincronicos/
-
-Si tienes cualquier duda, estaremos muy atentos.
-
-Saludos,`;
+        return `Hola, ${nombre}\n\nEnviamos a continuación tu cupón de cumpleaños: ${codigo}\n\nTienes 7 días a contar de la fecha de entrega para usarlo, válido solo para cursos en modalidad Asincrónica, con tope de valor de $30.000.-\n\nPara mejor orientación, te facilitamos este enlace donde se detallan los cursos asincrónicos disponibles, así puedes elegir tu mejor opción y agregar el curso al carrito, para luego aplicar el cupón: https://adipa.cl/programas-asincronicos/\n\nSi tienes cualquier duda, estaremos muy atentos.\nSaludos,`;
       }
 
       if (esAdipartners && !vencido) {
-        return `Hola, ${nombre}
-
-Te compartimos el cupón asociado a tu beneficio ADIPARTNERS: ${codigo}
-
-Puedes aplicarlo al momento de realizar tu compra, ingresándolo en el carrito antes de finalizar el pago.
-
-Te recomendamos revisar las condiciones de uso del beneficio, como vigencia, modalidad y monto máximo aplicable.
-
-¡Saludos!`;
+        return `Hola, ${nombre}\n\nTe compartimos el cupón asociado a tu beneficio ADIPARTNERS: ${codigo}\n\nPuedes aplicarlo al momento de realizar tu compra, ingresándolo en el carrito antes de finalizar el pago.\nTe recomendamos revisar las condiciones de uso del beneficio, como vigencia, modalidad y monto máximo aplicable.\n\n¡Saludos!`;
       }
 
       if (esAdipartners && vencido) {
-        return `Hola, ${nombre}
-
-Revisamos el cupón asociado a tu beneficio ADIPARTNERS: ${codigo}
-
-Actualmente este cupón se encuentra vencido, por lo que ya no está disponible para ser utilizado en una compra.
-
-Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puedes escribirnos al correo: beneficios@adipa.cl
-
-¡Saludos!`;
+        return `Hola, ${nombre}\n\nRevisamos el cupón asociado a tu beneficio ADIPARTNERS: ${codigo}\n\nActualmente este cupón se encuentra vencido, por lo que ya no está disponible para ser utilizado en una compra.\nSi necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puedes escribirnos al correo: beneficios@adipa.cl\n\n¡Saludos!`;
       }
 
       if (!vencido) {
-        return `Hola, ${nombre}
-
-Te compartimos el cupón asociado a tu solicitud: ${codigo}
-
-Puedes aplicarlo al momento de realizar tu compra, ingresándolo en el carrito antes de finalizar el pago.
-
-Si tienes cualquier duda, estaremos felices de ayudarte.
-
-¡Saludos!`;
+        return `Hola, ${nombre}\n\nTe compartimos el cupón asociado a tu solicitud: ${codigo}\n\nPuedes aplicarlo al momento de realizar tu compra, ingresándolo en el carrito antes de finalizar el pago.\nSi tienes cualquier duda, estaremos felices de ayudarte.\n\n¡Saludos!`;
       }
 
-      return `Hola, ${nombre}
-
-Revisamos el cupón asociado a tu solicitud: ${codigo}
-
-Actualmente este cupón se encuentra vencido, por lo que ya no está disponible para ser utilizado en una compra.
-
-Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puedes escribirnos para que podamos orientarte.
-
-¡Saludos!`;
+      return `Hola, ${nombre}\n\nRevisamos el cupón asociado a tu solicitud: ${codigo}\n\nActualmente este cupón se encuentra vencido, por lo que ya no está disponible para ser utilizado en una compra.\nSi necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puedes escribirnos para que podamos orientarte.\n\n¡Saludos!`;
     }
 
     function cargarMensaje(btn) {
       const div = btn.closest(".cupon-extra");
       const mensaje = div.getAttribute("data-mensaje");
-
       document.getElementById("seccionMensajeCumple").classList.remove("hidden");
       document.getElementById("mensajeContacto").value = mensaje;
 
@@ -1148,7 +1063,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
         behavior: "smooth",
         block: "start"
       });
-
       const original = btn.innerText;
       btn.innerText = "¡Cargado!";
 
@@ -1160,7 +1074,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
     function copiarMensaje() {
       const texto = document.getElementById("mensajeContacto").value;
       const btn = document.getElementById("btnCopiarMensaje");
-
       if (!texto) return;
 
       navigator.clipboard.writeText(texto).then(() => {
@@ -1178,7 +1091,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
 
     function copiarTexto(texto, btn) {
       if (!texto) return;
-
       navigator.clipboard.writeText(texto).then(() => {
         const original = btn.innerText;
 
@@ -1194,34 +1106,31 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
 
     function handleSolicitudFileChange(e) {
       const file = e.target.files[0];
-
       if (file) {
         procesarArchivoSolicitud(file);
       }
     }
 
+    // Funciones de Drag & Drop
     function handleSolicitudDragOver(e) {
       e.preventDefault();
-
       const zona = document.querySelector(".upload-solicitud-zone");
       if (zona) zona.classList.add("drag-over");
     }
 
     function handleSolicitudDragLeave(e) {
       e.preventDefault();
-
       const zona = document.querySelector(".upload-solicitud-zone");
       if (zona) zona.classList.remove("drag-over");
     }
 
+    // Al soltar el archivo
     function handleSolicitudDrop(e) {
       e.preventDefault();
-
       const zona = document.querySelector(".upload-solicitud-zone");
       if (zona) zona.classList.remove("drag-over");
 
       const file = e.dataTransfer.files[0];
-
       if (file) {
         procesarArchivoSolicitud(file);
       }
@@ -1229,7 +1138,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
 
     function procesarArchivoSolicitud(file) {
       const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-
       if (!allowedTypes.includes(file.type)) {
         alert("Formato no permitido. Solo se permite JPG, PNG o PDF.");
         return;
@@ -1240,47 +1148,36 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
         return;
       }
 
-      cedulaSolicitudNombre = file.name;
-      cedulaSolicitudTipo = file.type;
+      // Guardamos la referencia directa al binario (File) en lugar de pasarlo a Base64
+      archivoSolicitudFile = file;
 
-      const reader = new FileReader();
+      const preview = document.getElementById("previewSolicitudCupon");
+      const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
+      const btnSolicitar = document.getElementById("btnSolicitarCuponPrincipal");
 
-      reader.onload = function(ev) {
-        cedulaSolicitudBase64 = ev.target.result.split(",")[1];
+      if (preview && nombreArchivo) {
+        nombreArchivo.textContent = file.name + " · " + Math.round(file.size / 1024) + " KB";
+        preview.classList.remove("hidden");
+      }
 
-        const preview = document.getElementById("previewSolicitudCupon");
-        const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
-        const btnSolicitar = document.getElementById("btnSolicitarCuponPrincipal");
+      if (btnSolicitar) {
+        btnSolicitar.disabled = false;
+        btnSolicitar.title = "";
+        btnSolicitar.textContent = "Solicitar cupón";
+        btnSolicitar.onclick = function() {
+          solicitarCuponCumple(true);
+        };
+      }
 
-        if (preview && nombreArchivo) {
-          nombreArchivo.textContent = file.name + " · " + Math.round(file.size / 1024) + " KB";
-          preview.classList.remove("hidden");
-        }
-
-        if (btnSolicitar) {
-          btnSolicitar.disabled = false;
-          btnSolicitar.title = "";
-          btnSolicitar.textContent = "Solicitar cupón";
-          btnSolicitar.onclick = function() {
-            solicitarCuponCumple(true);
-          };
-        }
-
-        const respuesta = document.getElementById("respuestaSolicitudCupon");
-
-        if (respuesta) {
-          respuesta.classList.add("hidden");
-          respuesta.textContent = "";
-        }
-      };
-
-      reader.readAsDataURL(file);
+      const respuesta = document.getElementById("respuestaSolicitudCupon");
+      if (respuesta) {
+        respuesta.classList.add("hidden");
+        respuesta.textContent = "";
+      }
     }
 
     function limpiarArchivoSolicitud() {
-      cedulaSolicitudBase64 = null;
-      cedulaSolicitudTipo = null;
-      cedulaSolicitudNombre = null;
+      archivoSolicitudFile = null;
 
       const input = document.getElementById("archivoSolicitudCupon");
       const preview = document.getElementById("previewSolicitudCupon");
@@ -1290,7 +1187,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
       if (input) input.value = "";
       if (preview) preview.classList.add("hidden");
       if (nombreArchivo) nombreArchivo.textContent = "Archivo seleccionado";
-
       if (btnSolicitar && !estaVerificado()) {
         btnSolicitar.disabled = true;
         btnSolicitar.title = "Debes cargar el documento para habilitar la solicitud";
@@ -1301,19 +1197,17 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
       }
     }
 
+    // Soporte para pegar con Ctrl + V desde portapapeles
     document.addEventListener("paste", function(e) {
       const panelVisible = document.querySelector(".panel-solicitud-cupon");
-
       if (!panelVisible) return;
 
       const items = e.clipboardData?.items;
-
       if (!items) return;
 
       for (const item of items) {
         if (item.type.startsWith("image/")) {
           const file = item.getAsFile();
-
           if (file) {
             procesarArchivoSolicitud(
               new File([file], "cedula-pegada-desde-portapapeles.png", {
@@ -1321,7 +1215,6 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
               })
             );
           }
-
           break;
         }
       }
@@ -1334,14 +1227,11 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
       document.getElementById("resultadoBox").classList.add("hidden");
       document.getElementById("seccionCupones").classList.add("hidden");
       document.getElementById("seccionMensajeCumple").classList.add("hidden");
-
       document.getElementById("listaCuponesTodos").innerHTML = "";
       document.getElementById("mensajeContacto").value = "";
 
       contactoActual = null;
-      cedulaSolicitudBase64 = null;
-      cedulaSolicitudTipo = null;
-      cedulaSolicitudNombre = null;
+      archivoSolicitudFile = null;
       cuponPendienteActual = null;
     }
 
