@@ -93,7 +93,7 @@
     }
 
     button:disabled {
-      background-color: #ccc;
+      background-color: #ccc !important;
       color: #666;
       cursor: not-allowed;
     }
@@ -841,14 +841,19 @@
         const btnSolicitar = document.createElement("button");
         btnSolicitar.className = "btn-mini btn-solicitar";
         btnSolicitar.textContent = "Solicitar cupón";
+        btnSolicitar.id = "btnSolicitarCuponPrincipal";
 
         if (estaVerificado()) {
+          btnSolicitar.disabled = false;
+          btnSolicitar.title = "";
           btnSolicitar.onclick = function() {
             solicitarCuponCumple(false);
           };
         } else {
+          btnSolicitar.disabled = true;
+          btnSolicitar.title = "Debes cargar el documento para habilitar la solicitud";
           btnSolicitar.onclick = function() {
-            mostrarPanelDocumento(div);
+            solicitarCuponCumple(true);
           };
         }
 
@@ -879,7 +884,7 @@
 
       if (cupon.sinCupon && !estaVerificado()) {
         const panel = document.createElement("div");
-        panel.className = "panel-solicitud-cupon hidden";
+        panel.className = "panel-solicitud-cupon";
         panel.innerHTML = crearPanelSolicitudCupon();
         div.appendChild(panel);
       }
@@ -891,8 +896,8 @@
       return `
         <div class="panel-inner">
           <p class="panel-texto">
-            Este contacto aún no se encuentra verificado. Para solicitar el cupón de cumpleaños,
-            primero debes adjuntar la cédula o documento de identidad.
+            Este contacto aún no se encuentra verificado. Para habilitar la solicitud del cupón de cumpleaños,
+            adjunta la cédula o documento de identidad.
           </p>
 
           <div class="upload-solicitud-zone"
@@ -915,34 +920,14 @@
             <button type="button" onclick="limpiarArchivoSolicitud()">Quitar</button>
           </div>
 
-          <button class="btn-copiar"
-                  id="btnEnviarSolicitudCupon"
-                  onclick="solicitarCuponCumple(true)"
-                  disabled>
-            Solicitar cupón
-          </button>
-
           <div id="respuestaSolicitudCupon" class="respuesta-solicitud hidden"></div>
         </div>
       `;
     }
 
-    function mostrarPanelDocumento(card) {
-      const panel = card.querySelector(".panel-solicitud-cupon");
-
-      if (!panel) return;
-
-      panel.classList.remove("hidden");
-
-      panel.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
-
     async function solicitarCuponCumple(requiereArchivo) {
       const respuesta = document.getElementById("respuestaSolicitudCupon");
-      const btn = document.getElementById("btnEnviarSolicitudCupon");
+      const btn = document.getElementById("btnSolicitarCuponPrincipal");
 
       if (requiereArchivo && !cedulaSolicitudBase64) {
         if (respuesta) {
@@ -957,7 +942,7 @@
 
       if (btn) {
         btn.disabled = true;
-        btn.textContent = "Solicitando cupón...";
+        btn.textContent = "Solicitando...";
       }
 
       if (respuesta) {
@@ -1021,8 +1006,13 @@
         }
       } finally {
         if (btn) {
-          btn.disabled = false;
           btn.textContent = "Solicitar cupón";
+
+          if (estaVerificado()) {
+            btn.disabled = false;
+          } else {
+            btn.disabled = !cedulaSolicitudBase64;
+          }
         }
       }
     }
@@ -1260,16 +1250,20 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
 
         const preview = document.getElementById("previewSolicitudCupon");
         const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
-        const btnEnviar = document.getElementById("btnEnviarSolicitudCupon");
+        const btnSolicitar = document.getElementById("btnSolicitarCuponPrincipal");
 
         if (preview && nombreArchivo) {
           nombreArchivo.textContent = file.name + " · " + Math.round(file.size / 1024) + " KB";
           preview.classList.remove("hidden");
         }
 
-        if (btnEnviar) {
-          btnEnviar.disabled = false;
-          btnEnviar.textContent = "Solicitar cupón";
+        if (btnSolicitar) {
+          btnSolicitar.disabled = false;
+          btnSolicitar.title = "";
+          btnSolicitar.textContent = "Solicitar cupón";
+          btnSolicitar.onclick = function() {
+            solicitarCuponCumple(true);
+          };
         }
 
         const respuesta = document.getElementById("respuestaSolicitudCupon");
@@ -1291,20 +1285,24 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
       const input = document.getElementById("archivoSolicitudCupon");
       const preview = document.getElementById("previewSolicitudCupon");
       const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
-      const btnEnviar = document.getElementById("btnEnviarSolicitudCupon");
+      const btnSolicitar = document.getElementById("btnSolicitarCuponPrincipal");
 
       if (input) input.value = "";
       if (preview) preview.classList.add("hidden");
       if (nombreArchivo) nombreArchivo.textContent = "Archivo seleccionado";
 
-      if (btnEnviar) {
-        btnEnviar.disabled = true;
-        btnEnviar.textContent = "Solicitar cupón";
+      if (btnSolicitar && !estaVerificado()) {
+        btnSolicitar.disabled = true;
+        btnSolicitar.title = "Debes cargar el documento para habilitar la solicitud";
+        btnSolicitar.textContent = "Solicitar cupón";
+        btnSolicitar.onclick = function() {
+          solicitarCuponCumple(true);
+        };
       }
     }
 
     document.addEventListener("paste", function(e) {
-      const panelVisible = document.querySelector(".panel-solicitud-cupon:not(.hidden)");
+      const panelVisible = document.querySelector(".panel-solicitud-cupon");
 
       if (!panelVisible) return;
 
