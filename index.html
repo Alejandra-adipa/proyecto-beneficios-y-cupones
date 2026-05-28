@@ -94,6 +94,7 @@
 
     button:disabled {
       background-color: #ccc;
+      color: #666;
       cursor: not-allowed;
     }
 
@@ -118,7 +119,7 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     .resultado-box {
@@ -223,6 +224,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .cupon-extra.sin-cupon {
@@ -265,6 +267,7 @@
       align-items: center;
       gap: 6px;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     .btn-mini {
@@ -276,10 +279,12 @@
       border-radius: 6px;
     }
 
-    .btn-mini:disabled {
-      background: #ccc !important;
-      color: #666;
-      cursor: not-allowed;
+    .btn-solicitar {
+      background: #28a745;
+    }
+
+    .btn-solicitar:hover:not(:disabled) {
+      background: #218838;
     }
 
     .btn-hubspot {
@@ -309,6 +314,99 @@
 
     .btn-gris:hover:not(:disabled) {
       background-color: #555;
+    }
+
+    .panel-solicitud-cupon {
+      width: 100%;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #d0d5dd;
+    }
+
+    .panel-inner {
+      background: #ffffff;
+      border: 1px solid #ede9ff;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .panel-texto {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .upload-solicitud-zone {
+      border: 2px dashed #d0d5dd;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      background: #fafafa;
+      color: #555;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .upload-solicitud-zone:hover,
+    .upload-solicitud-zone.drag-over {
+      border-color: #704EFD;
+      background: #f4f1ff;
+    }
+
+    .upload-icon {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .upload-ayuda {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .preview-solicitud {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: #e6f9f0;
+      color: #1a7a4a;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .preview-solicitud button {
+      width: auto;
+      height: 28px;
+      margin-top: 0;
+      padding: 0 10px;
+      font-size: 11px;
+      background: #667085;
+    }
+
+    .respuesta-solicitud {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f0ecff;
+      color: #704EFD;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .respuesta-solicitud.ok {
+      background: #e6f9f0;
+      color: #1a7a4a;
+    }
+
+    .respuesta-solicitud.error {
+      background: #fdecea;
+      color: #c0392b;
     }
 
     @media (max-width: 560px) {
@@ -368,6 +466,11 @@
       </div>
 
       <div class="dato-fila">
+        <span class="dato-etiqueta">País</span>
+        <span class="dato-valor" id="rPais">—</span>
+      </div>
+
+      <div class="dato-fila">
         <span class="dato-etiqueta">Estado verificación</span>
         <span class="dato-valor" id="rEstadoVerif">—</span>
       </div>
@@ -407,6 +510,15 @@
   <script>
     const WEBHOOK_CUPONES = "https://hook.us2.make.com/6cskbge9qgwitfxrlcgux851o8agl5e7";
 
+    // Reemplaza esta URL cuando tengas listo el webhook en Make
+    const WEBHOOK_SOLICITAR_CUPON = "https://hook.us2.make.com/TU_WEBHOOK_SOLICITAR_CUPON_AQUI";
+
+    let contactoActual = null;
+    let cedulaSolicitudBase64 = null;
+    let cedulaSolicitudTipo = null;
+    let cedulaSolicitudNombre = null;
+    let cuponPendienteActual = null;
+
     async function buscarContacto() {
       const email = document.getElementById("email").value.trim();
       const mensaje = document.getElementById("mensaje");
@@ -427,6 +539,12 @@
       document.getElementById("seccionMensajeCumple").classList.add("hidden");
       document.getElementById("listaCuponesTodos").innerHTML = "";
       document.getElementById("mensajeContacto").value = "";
+
+      contactoActual = null;
+      cedulaSolicitudBase64 = null;
+      cedulaSolicitudTipo = null;
+      cedulaSolicitudNombre = null;
+      cuponPendienteActual = null;
 
       try {
         const res = await fetch(WEBHOOK_CUPONES, {
@@ -511,9 +629,42 @@
       }
     }
 
+    function obtenerPaisDesdeData(data) {
+      if (!data) return "";
+
+      return (
+        data.pais ||
+        data.país ||
+        data.country ||
+        data.pais_contacto ||
+        data.Pais ||
+        data.País ||
+        data.país_contacto ||
+        ""
+      ).toString().trim();
+    }
+
+    function obtenerPaisContacto() {
+      return obtenerPaisDesdeData(contactoActual);
+    }
+
+    function esChile() {
+      const pais = obtenerPaisContacto().toLowerCase();
+      return pais === "chile" || pais === "cl";
+    }
+
     function mostrarResultado(data) {
+      contactoActual = data;
+      cedulaSolicitudBase64 = null;
+      cedulaSolicitudTipo = null;
+      cedulaSolicitudNombre = null;
+      cuponPendienteActual = null;
+
+      const paisContacto = obtenerPaisDesdeData(data);
+
       document.getElementById("rNombre").textContent = data.nombre || "—";
       document.getElementById("rFechaNac").textContent = formatFecha(data.fecha_nacimiento);
+      document.getElementById("rPais").textContent = paisContacto || "—";
       document.getElementById("rEstadoVerif").innerHTML = badge(data.estado_verificacion);
       document.getElementById("rFechaVerif").textContent = formatFecha(data.fecha_verificacion);
       document.getElementById("rAdipartners").innerHTML = badge(data.es_adipartners);
@@ -607,19 +758,13 @@
         });
       }
 
-      if (cupones.length > 0) {
-        cupones.forEach(cupon => {
-          lista.appendChild(crearItemCupon(cupon));
-        });
+      cupones.forEach(cupon => {
+        lista.appendChild(crearItemCupon(cupon));
+      });
 
-        document.getElementById("seccionCupones").classList.remove("hidden");
-      } else {
-        document.getElementById("seccionCupones").classList.add("hidden");
-      }
-
+      document.getElementById("seccionCupones").classList.remove("hidden");
       document.getElementById("seccionMensajeCumple").classList.add("hidden");
       document.getElementById("mensajeContacto").value = "";
-
       document.getElementById("resultadoBox").classList.remove("hidden");
     }
 
@@ -667,16 +812,26 @@
         estado.innerHTML = estadoCupon(cupon.dateExpires);
       }
 
-      const btnCopiar = document.createElement("button");
-      btnCopiar.className = "btn-mini";
-      btnCopiar.textContent = "Copiar";
+      acciones.appendChild(estado);
 
       if (cupon.sinCupon) {
-        btnCopiar.disabled = true;
+        const btnSolicitar = document.createElement("button");
+        btnSolicitar.className = "btn-mini btn-solicitar";
+        btnSolicitar.textContent = "Solicitar cupón";
+        btnSolicitar.onclick = function() {
+          manejarSolicitudCuponCumple(div, cupon);
+        };
+
+        acciones.appendChild(btnSolicitar);
       } else {
+        const btnCopiar = document.createElement("button");
+        btnCopiar.className = "btn-mini";
+        btnCopiar.textContent = "Copiar";
         btnCopiar.onclick = function() {
           copiarTexto(cupon.codigo, btnCopiar);
         };
+
+        acciones.appendChild(btnCopiar);
       }
 
       const btnMensaje = document.createElement("button");
@@ -687,14 +842,192 @@
         cargarMensaje(btnMensaje);
       };
 
-      acciones.appendChild(estado);
-      acciones.appendChild(btnCopiar);
       acciones.appendChild(btnMensaje);
 
       div.appendChild(info);
       div.appendChild(acciones);
 
+      if (cupon.sinCupon) {
+        const panel = document.createElement("div");
+        panel.className = "panel-solicitud-cupon hidden";
+        panel.innerHTML = crearPanelSolicitudCupon();
+        div.appendChild(panel);
+      }
+
       return div;
+    }
+
+    function crearPanelSolicitudCupon() {
+      return `
+        <div class="panel-inner">
+          <p class="panel-texto">
+            Para solicitar el cupón de cumpleaños, adjunta la cédula/documento de identidad del contacto.
+            Puedes subir una imagen, PDF o pegar una captura.
+          </p>
+
+          <div class="upload-solicitud-zone"
+               onclick="document.getElementById('archivoSolicitudCupon').click()"
+               ondragover="handleSolicitudDragOver(event)"
+               ondragleave="handleSolicitudDragLeave(event)"
+               ondrop="handleSolicitudDrop(event)">
+            <input type="file"
+                   id="archivoSolicitudCupon"
+                   accept="image/jpeg,image/png,application/pdf"
+                   onchange="handleSolicitudFileChange(event)"
+                   style="display:none;">
+            <div class="upload-icon">📎</div>
+            <div><strong>Haz clic para adjuntar</strong> o arrastra el archivo aquí</div>
+            <div class="upload-ayuda">También puedes pegar una imagen con Ctrl+V</div>
+          </div>
+
+          <div id="previewSolicitudCupon" class="preview-solicitud hidden">
+            <span id="nombreArchivoSolicitud">Archivo seleccionado</span>
+            <button type="button" onclick="limpiarArchivoSolicitud()">Quitar</button>
+          </div>
+
+          <button class="btn-copiar" id="btnEnviarSolicitudCupon" onclick="solicitarCuponCumple(true)">
+            Enviar solicitud
+          </button>
+
+          <div id="respuestaSolicitudCupon" class="respuesta-solicitud hidden"></div>
+        </div>
+      `;
+    }
+
+    function manejarSolicitudCuponCumple(card, cupon) {
+      cuponPendienteActual = cupon;
+
+      if (esChile()) {
+        solicitarCuponCumple(false);
+        return;
+      }
+
+      const panel = card.querySelector(".panel-solicitud-cupon");
+
+      if (!panel) return;
+
+      panel.classList.toggle("hidden");
+
+      if (!panel.classList.contains("hidden")) {
+        panel.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }
+
+    async function solicitarCuponCumple(requiereArchivo) {
+      const respuesta = document.getElementById("respuestaSolicitudCupon");
+      const btn = document.getElementById("btnEnviarSolicitudCupon");
+
+      if (requiereArchivo && !cedulaSolicitudBase64) {
+        if (respuesta) {
+          respuesta.classList.remove("hidden");
+          respuesta.className = "respuesta-solicitud error";
+          respuesta.textContent = "Debes adjuntar o pegar la cédula antes de solicitar el cupón.";
+        } else {
+          alert("Debes adjuntar o pegar la cédula antes de solicitar el cupón.");
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Solicitando cupón...";
+      }
+
+      if (respuesta) {
+        respuesta.classList.remove("hidden");
+        respuesta.className = "respuesta-solicitud";
+        respuesta.textContent = "Enviando solicitud a Make...";
+      } else {
+        document.getElementById("mensaje").textContent = "Enviando solicitud a Make...";
+        document.getElementById("mensaje").style.color = "#666";
+      }
+
+      const payload = {
+        accion: "solicitar_cupon_cumpleanos",
+        nombre: contactoActual?.nombre || "",
+        email: document.getElementById("email").value.trim(),
+        pais: obtenerPaisContacto(),
+        fecha_nacimiento: contactoActual?.fecha_nacimiento || "",
+        estado_verificacion: contactoActual?.estado_verificacion || "",
+        fecha_verificacion: contactoActual?.fecha_verificacion || "",
+        es_adipartners: contactoActual?.es_adipartners || "",
+        url_hubspot: contactoActual?.url_hubspot || "",
+        requiere_archivo: requiereArchivo,
+        cedula_base64: cedulaSolicitudBase64,
+        cedula_tipo: cedulaSolicitudTipo,
+        cedula_nombre: cedulaSolicitudNombre,
+        fuente: "formulario_cupones_beneficios"
+      };
+
+      try {
+        const res = await fetch(WEBHOOK_SOLICITAR_CUPON, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        let data = null;
+
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+
+        if (!res.ok) {
+          throw new Error("Error " + res.status);
+        }
+
+        mostrarRespuestaSolicitudCupon(data);
+
+      } catch (e) {
+        if (respuesta) {
+          respuesta.classList.remove("hidden");
+          respuesta.className = "respuesta-solicitud error";
+          respuesta.textContent = "No se pudo enviar la solicitud. Revisa el webhook o intenta nuevamente. " + e.message;
+        } else {
+          document.getElementById("mensaje").textContent = "No se pudo enviar la solicitud. " + e.message;
+          document.getElementById("mensaje").style.color = "red";
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Enviar solicitud";
+        }
+      }
+    }
+
+    function mostrarRespuestaSolicitudCupon(data) {
+      const respuesta = document.getElementById("respuestaSolicitudCupon");
+
+      let mensaje = "Solicitud enviada correctamente.";
+
+      if (data) {
+        mensaje =
+          data.mensaje ||
+          data.message ||
+          data.respuesta ||
+          data.status ||
+          "Solicitud enviada correctamente.";
+
+        if (data.cupon || data.codigo || data.codigo_cupon) {
+          mensaje += "\n\nCupón generado: " + (data.cupon || data.codigo || data.codigo_cupon);
+        }
+      }
+
+      if (respuesta) {
+        respuesta.classList.remove("hidden");
+        respuesta.className = "respuesta-solicitud ok";
+        respuesta.textContent = mensaje;
+      } else {
+        document.getElementById("mensaje").textContent = mensaje;
+        document.getElementById("mensaje").style.color = "green";
+      }
     }
 
     function crearMensajeCupon({ nombre, tipo, codigo, fechaEntrega, dateExpires, sinCupon }) {
@@ -844,6 +1177,121 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
       });
     }
 
+    function handleSolicitudFileChange(e) {
+      const file = e.target.files[0];
+
+      if (file) {
+        procesarArchivoSolicitud(file);
+      }
+    }
+
+    function handleSolicitudDragOver(e) {
+      e.preventDefault();
+
+      const zona = document.querySelector(".upload-solicitud-zone");
+      if (zona) zona.classList.add("drag-over");
+    }
+
+    function handleSolicitudDragLeave(e) {
+      e.preventDefault();
+
+      const zona = document.querySelector(".upload-solicitud-zone");
+      if (zona) zona.classList.remove("drag-over");
+    }
+
+    function handleSolicitudDrop(e) {
+      e.preventDefault();
+
+      const zona = document.querySelector(".upload-solicitud-zone");
+      if (zona) zona.classList.remove("drag-over");
+
+      const file = e.dataTransfer.files[0];
+
+      if (file) {
+        procesarArchivoSolicitud(file);
+      }
+    }
+
+    function procesarArchivoSolicitud(file) {
+      const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert("Formato no permitido. Solo se permite JPG, PNG o PDF.");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert("El archivo supera los 5MB. Por favor sube una imagen más liviana.");
+        return;
+      }
+
+      cedulaSolicitudNombre = file.name;
+      cedulaSolicitudTipo = file.type;
+
+      const reader = new FileReader();
+
+      reader.onload = function(ev) {
+        cedulaSolicitudBase64 = ev.target.result.split(",")[1];
+
+        const preview = document.getElementById("previewSolicitudCupon");
+        const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
+
+        if (preview && nombreArchivo) {
+          nombreArchivo.textContent = file.name + " · " + Math.round(file.size / 1024) + " KB";
+          preview.classList.remove("hidden");
+        }
+
+        const respuesta = document.getElementById("respuestaSolicitudCupon");
+
+        if (respuesta) {
+          respuesta.classList.add("hidden");
+          respuesta.textContent = "";
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function limpiarArchivoSolicitud() {
+      cedulaSolicitudBase64 = null;
+      cedulaSolicitudTipo = null;
+      cedulaSolicitudNombre = null;
+
+      const input = document.getElementById("archivoSolicitudCupon");
+      const preview = document.getElementById("previewSolicitudCupon");
+      const nombreArchivo = document.getElementById("nombreArchivoSolicitud");
+
+      if (input) input.value = "";
+      if (preview) preview.classList.add("hidden");
+      if (nombreArchivo) nombreArchivo.textContent = "Archivo seleccionado";
+    }
+
+    document.addEventListener("paste", function(e) {
+      const panelVisible = document.querySelector(".panel-solicitud-cupon:not(.hidden)");
+
+      if (!panelVisible) return;
+
+      const items = e.clipboardData?.items;
+
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+
+          if (file) {
+            procesarArchivoSolicitud(
+              new File([file], "cedula-pegada-desde-portapapeles.png", {
+                type: file.type
+              })
+            );
+          }
+
+          break;
+        }
+      }
+    });
+
     function reiniciar() {
       document.getElementById("email").value = "";
       document.getElementById("mensaje").textContent = "";
@@ -854,6 +1302,12 @@ Si necesitas revisar otra alternativa o tienes dudas sobre este beneficio, puede
 
       document.getElementById("listaCuponesTodos").innerHTML = "";
       document.getElementById("mensajeContacto").value = "";
+
+      contactoActual = null;
+      cedulaSolicitudBase64 = null;
+      cedulaSolicitudTipo = null;
+      cedulaSolicitudNombre = null;
+      cuponPendienteActual = null;
     }
 
     document.getElementById("email").addEventListener("keydown", function(e) {
