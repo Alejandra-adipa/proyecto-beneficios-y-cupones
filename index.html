@@ -196,6 +196,11 @@
       color: #704EFD;
     }
 
+    .badge-sincupon {
+      background: #f2f4f7;
+      color: #667085;
+    }
+
     .seccion-titulo {
       font-size: 12px;
       font-weight: bold;
@@ -220,6 +225,11 @@
       gap: 8px;
     }
 
+    .cupon-extra.sin-cupon {
+      background: #fafafa;
+      border: 1px dashed #d0d5dd;
+    }
+
     .cupon-extra-info {
       flex: 1;
       min-width: 0;
@@ -230,6 +240,12 @@
       font-size: 14px;
       color: #111;
       word-break: break-word;
+    }
+
+    .cupon-extra .codigo.sin-cupon-texto {
+      color: #999;
+      font-style: italic;
+      font-weight: 600;
     }
 
     .cupon-extra .tipo {
@@ -258,6 +274,12 @@
       font-size: 12px;
       margin-top: 0;
       border-radius: 6px;
+    }
+
+    .btn-mini:disabled {
+      background: #ccc !important;
+      color: #666;
+      cursor: not-allowed;
     }
 
     .btn-hubspot {
@@ -529,32 +551,32 @@
         }
       }
 
-    cupones.push({
-  tipo: "Cupón de Cumpleaños",
-  codigo: tieneCuponCumple ? cuponCumple : "Sin cupón asociado",
-  textoFecha: tieneCuponCumple
-    ? "Entregado: " + formatFecha(data.fecha_entrega_cupon)
-    : "Sin fecha de entrega",
-  dateExpires: tieneCuponCumple ? dateExpiresCumple : null,
-  sinCupon: !tieneCuponCumple,
-  mensaje: tieneCuponCumple
-    ? crearMensajeCupon({
-        nombre: nombre,
+      cupones.push({
         tipo: "Cupón de Cumpleaños",
-        codigo: cuponCumple,
-        fechaEntrega: formatFecha(data.fecha_entrega_cupon),
-        dateExpires: dateExpiresCumple
-      })
-    : `Hola, ${nombre}
-
-Revisamos tu información y, por el momento, no encontramos un cupón de cumpleaños asociado a tu contacto.
-
-Si realizaste una solicitud recientemente, podemos revisarla para confirmar el estado del beneficio.
-
-Quedamos atentos para ayudarte.
-
-¡Saludos!`
-});
+        codigo: tieneCuponCumple ? cuponCumple : "Sin cupón asociado",
+        textoFecha: tieneCuponCumple
+          ? "Entregado: " + formatFecha(data.fecha_entrega_cupon)
+          : "Sin fecha de entrega",
+        dateExpires: tieneCuponCumple ? dateExpiresCumple : null,
+        sinCupon: !tieneCuponCumple,
+        mensaje: tieneCuponCumple
+          ? crearMensajeCupon({
+              nombre: nombre,
+              tipo: "Cupón de Cumpleaños",
+              codigo: cuponCumple,
+              fechaEntrega: formatFecha(data.fecha_entrega_cupon),
+              dateExpires: dateExpiresCumple,
+              sinCupon: false
+            })
+          : crearMensajeCupon({
+              nombre: nombre,
+              tipo: "Cupón de Cumpleaños",
+              codigo: "",
+              fechaEntrega: null,
+              dateExpires: null,
+              sinCupon: true
+            })
+      });
 
       if (data.cupones_estado && Array.isArray(data.cupones_estado)) {
         data.cupones_estado.forEach(c => {
@@ -572,12 +594,14 @@ Quedamos atentos para ayudarte.
             codigo: codigo,
             textoFecha: dateExpires ? "Vence: " + formatFecha(dateExpires) : "Sin fecha límite",
             dateExpires: dateExpires,
+            sinCupon: false,
             mensaje: crearMensajeCupon({
               nombre: nombre,
               tipo: tipo,
               codigo: codigo,
               fechaEntrega: null,
-              dateExpires: dateExpires
+              dateExpires: dateExpires,
+              sinCupon: false
             })
           });
         });
@@ -602,6 +626,11 @@ Quedamos atentos para ayudarte.
     function crearItemCupon(cupon) {
       const div = document.createElement("div");
       div.className = "cupon-extra";
+
+      if (cupon.sinCupon) {
+        div.classList.add("sin-cupon");
+      }
+
       div.setAttribute("data-mensaje", cupon.mensaje);
 
       const info = document.createElement("div");
@@ -615,6 +644,10 @@ Quedamos atentos para ayudarte.
       codigo.className = "codigo";
       codigo.textContent = cupon.codigo;
 
+      if (cupon.sinCupon) {
+        codigo.classList.add("sin-cupon-texto");
+      }
+
       const vence = document.createElement("div");
       vence.className = "vence";
       vence.textContent = cupon.textoFecha;
@@ -627,14 +660,24 @@ Quedamos atentos para ayudarte.
       acciones.className = "cupon-extra-acciones";
 
       const estado = document.createElement("span");
-      estado.innerHTML = estadoCupon(cupon.dateExpires);
+
+      if (cupon.sinCupon) {
+        estado.innerHTML = `<span class="badge badge-sincupon">Sin cupón</span>`;
+      } else {
+        estado.innerHTML = estadoCupon(cupon.dateExpires);
+      }
 
       const btnCopiar = document.createElement("button");
       btnCopiar.className = "btn-mini";
       btnCopiar.textContent = "Copiar";
-      btnCopiar.onclick = function() {
-        copiarTexto(cupon.codigo, btnCopiar);
-      };
+
+      if (cupon.sinCupon) {
+        btnCopiar.disabled = true;
+      } else {
+        btnCopiar.onclick = function() {
+          copiarTexto(cupon.codigo, btnCopiar);
+        };
+      }
 
       const btnMensaje = document.createElement("button");
       btnMensaje.className = "btn-mini";
@@ -654,7 +697,19 @@ Quedamos atentos para ayudarte.
       return div;
     }
 
-    function crearMensajeCupon({ nombre, tipo, codigo, fechaEntrega, dateExpires }) {
+    function crearMensajeCupon({ nombre, tipo, codigo, fechaEntrega, dateExpires, sinCupon }) {
+      if (sinCupon) {
+        return `Hola, ${nombre}
+
+Revisamos tu información y, por el momento, no encontramos un cupón de cumpleaños asociado a tu contacto.
+
+Si realizaste una solicitud recientemente, podemos revisarla para confirmar el estado del beneficio.
+
+Quedamos atentos para ayudarte.
+
+¡Saludos!`;
+      }
+
       const vencido = dateExpires && new Date(dateExpires) < new Date();
       const tipoLower = tipo.toLowerCase();
 
